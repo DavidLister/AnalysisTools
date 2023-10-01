@@ -7,8 +7,9 @@
 # September 2023
 #
 
-import AnalysisTools as AT
+import analysis_tools as AT
 import numpy as np
+import common
 
 ureg = AT.ureg  # A unit registry from the pint package
 
@@ -29,37 +30,40 @@ data = {"Energy": np.array((1, 2, 3)) * ureg.parse_units("meV"),
 # Parameters are defined in a sub-dict for each type
 # Otherwise strings are assumed to be sub-models
 
-FIXED_PARAMETERS = "FIXED_PARAMETERS"
-FIT_PARAMETERS = "FIT_PARAMETERS"
-MODEL = "MODEL"
-AUTO = "AUTO"  # For automatically determining initial guess
+FIXED_PARAMETERS = common.FIXED_PARAMETERS
+FIT_PARAMETERS = common.FIT_PARAMETERS
+PARAMETERS = common.PARAMETERS
+MODEL = common.MODEL
+AUTO = common.AUTO
+DOMAIN = common.DOMAIN
 
 initial_model = {"Ga_Pair_Naurita_Thermal": {MODEL: AT.Model_Pair_Naurita_Thermal,
-                                             FIT_PARAMETERS: {"scale": "A_Ga_Pair", # Dictionary indices refer to those defined in the model
-                                                              "Nd": "Ga_Nd",
-                                                              "Temp": "Temperature"},
-                                             FIXED_PARAMETERS: {"E0":"E0_Ga",
-                                                                "Ebind":"Ebind_Ga_ZnO"}
+                                             PARAMETERS: {"scale": "A_Ga_Pair", # Dictionary indices refer to those defined in the model
+                                                          "Nd": "Ga_Nd",
+                                                          "Temp": "Temperature",
+                                                          "E0":"E0_Ga",
+                                                          "Ebind":"Ebind_Ga_ZnO"}
                                              },
 
                  "Ga_Lorentzian": {MODEL: AT.Model_Lorentzian,
-                                   FIT_PARAMETERS: {"scale": "A_Ga_Lorentzian",
-                                                    "fwhm": "FWHM_Ga_Lorentzian"},
-                                   FIXED_PARAMETERS: {"x_offset": "E0_Ga"}
+                                   PARAMETERS: {"scale": "A_Ga_Lorentzian",
+                                                "fwhm": "FWHM_Ga_Lorentzian",
+                                                "x_offset": "E0_Ga"},
+                                   DOMAIN: (3 * ureg.parse_units("meV"), 4 * ureg.parse_units("meV"))
                                    },
 
                  "In_Pair_Naurita_Thermal": {MODEL: AT.Model_Pair_Naurita_Thermal,
-                                             FIT_PARAMETERS: {"scale": "A_In_Pair",
-                                                              "Nd": "In_Nd",
-                                                              "Temp": "Temperature"},
-                                             FIXED_PARAMETERS: {"E0":"E0_In",
-                                                                "Ebind":"Ebind_In_ZnO"}
+                                             PARAMETERS: {"scale": "A_In_Pair",
+                                                          "Nd": "In_Nd",
+                                                          "Temp": "Temperature",
+                                                          "E0":"E0_In",
+                                                          "Ebind":"Ebind_In_ZnO"}
                                              },
 
                  "In_Lorentzian": {MODEL: AT.Model_Lorentzian,
-                                   FIT_PARAMETERS: {"scale": "A_In_Lorentzian",
-                                                    "fwhm": "FWHM_In_Lorentzian"},
-                                   FIXED_PARAMETERS: {"x_offset": "E0_In"}
+                                   PARAMETERS: {"scale": "A_In_Lorentzian",
+                                                "fwhm": "FWHM_In_Lorentzian",
+                                                "x_offset": "E0_In"}
                                    },
 
                  FIXED_PARAMETERS: {"E0_Ga": AT.values.E0_Ga_ZnO,

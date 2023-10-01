@@ -5,7 +5,14 @@
 # October 2023
 #
 
+import pint
+
+ureg = pint.UnitRegistry()
+
 FIXED_PARAMETERS = "FIXED_PARAMETERS"
 FIT_PARAMETERS = "FIT_PARAMETERS"
+PARAMETERS = "PARAMETERS"
 MODEL = "MODEL"
+DOMAIN = "DOMAIN"
+
 AUTO = "AUTO"  # For automatically determining initial guess
