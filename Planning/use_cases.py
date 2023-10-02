@@ -82,7 +82,7 @@ initial_model = {"Ga_Pair_Naurita_Thermal": {MODEL: AT.Model_Pair_Naurita_Therma
 
 AT.plot_model(data["Energy"], data["Counts"], initial_model)  # Would plot model and residuals, format is (x, y, model)
 
-fitted_model, fit_quality = AT.fit_model(data["Energy"], data["Counts"], initial_model)  # Would return a dict of the same structure, but with updated fit parameters, plus error on the fit params
+fit_parameter, fit_results = AT.fit_model(data["Energy"], data["Counts"], initial_model)  # Would return a dict of the same structure, but with updated fit parameters, plus error on the fit params
 
 print(fit_quality)
 
