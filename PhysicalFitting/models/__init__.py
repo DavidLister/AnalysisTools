@@ -1,6 +1,6 @@
-# generic.py
+# __init__.py
 #
-# Holds generic models
+# Init file for the packaged models
 # David Lister
 # October 2023
 #
@@ -12,17 +12,6 @@
 #   - fd_name for the domain functions
 #   - fg_name for the initial guess functions
 
-import common
-import numpy as np
-import model_classes
+__all__ = ['generic']
 
-
-def fm_linear(x, m, b):
-    return m*x + b
-
-
-def fd_all(x, params):
-    return np.full(x.shape, True)
-
-
-s_linear = model_classes.SingleModel(fm_linear, fd_all, 'm', 'b')
+import generic

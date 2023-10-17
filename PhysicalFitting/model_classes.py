@@ -82,12 +82,12 @@ class CompositeModel:
                 self.model_dict[key] = self.raw_composite_model_dict[key]
 
                 # Verify that all required parameters are defined
-                if self.model_dict[key].n_params != len(self.model_dict[key][common.PARAMETERS]):
+                if self.model_dict[key][common.MODEL].n_params != len(self.model_dict[key][common.PARAMETERS]):
                     raise ModelDefinitionError(f"The number of parameters given doesn't match {key} model requirements.")
 
                 # Register model parameters in LUT
-                for model_param in self.model_dict[common.PARAMETERS].keys():
-                    param_name = self.model_dict[common.PARAMETERS][model_param]
+                for model_param in self.model_dict[key][common.PARAMETERS].keys():
+                    param_name = self.model_dict[key][common.PARAMETERS][model_param]
                     if param_name in self.parameter_name_to_model:
                         self.parameter_name_to_model[param_name].append(key)
                     else:
@@ -141,7 +141,7 @@ class CompositeModel:
         y_data = np.zeros(x_data.shape)
         for model in self.model_dict.keys():
             submodel_parameters = {sub_param: parameter_dict[self.model_dict[model][common.PARAMETERS][sub_param]] for sub_param in self.model_dict[model][common.PARAMETERS].keys()}
-            y_data = y_data + self.model_dict[model][common.MODEL].run(x_data, submodel_parameters, domain_restriction=self.model_dict[model][common.MODEL][common.DOMAIN])
+            y_data = y_data + self.model_dict[model][common.MODEL].run(x_data, submodel_parameters, domain_restriction=self.model_dict[model][common.DOMAIN])
 
         return y_data
 
