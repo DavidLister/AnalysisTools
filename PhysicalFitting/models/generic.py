@@ -12,7 +12,6 @@
 #   - fd_name for the domain functions
 #   - fg_name for the initial guess functions
 
-import common
 import numpy as np
 import model_classes
 
@@ -23,8 +22,20 @@ def fm_linear(x, params):
     return m*x + b
 
 
+def fm_lorentz_distribution(x, params):
+    # Not centered, that will be done by the fitting
+    x0 = params['x0']
+    fwhm = params['fwhm']
+    fwhm = np.abs(fwhm)
+    scale = params['scale']
+    scale = np.abs(scale)
+    gamma = fwhm/2
+    return scale / (np.pi * gamma * (1 + ((x - x0)/gamma)**2))
+
+
 def fd_all(x, params):
     return np.full(x.shape, True)
 
 
 s_linear = model_classes.SingleModel(fm_linear, fd_all, ('m', 'b'))
+s_lorentz = model_classes.SingleModel(fm_lorentz_distribution, fd_all, ('x0', 'fwhm', 'scale'))

@@ -14,8 +14,6 @@ class SolverConfigurationError(Exception):
     """"Solver Configuration Error"""
 
 def error_l2norm(data1, data2):
-    # print(data1.units)
-    # print(data2.units)
     delta = data1 - data2
     if isinstance(delta, common.pint.Quantity):
         return np.linalg.norm(delta.magnitude)
@@ -23,7 +21,13 @@ def error_l2norm(data1, data2):
     return out
 
 
-def fit_model(x_data, y_data, model, error_model=None, method='Nelder-Mead', tol=1e-6):
+def error_l2norm_in_semilogy_space(data1, data2):
+    """Experimental"""
+    delta = np.log(data1 + 1) - np.log(data2 + 1)
+    return np.linalg.norm(delta)
+
+
+def fit_model(x_data, y_data, model, error_model=None, method='Nelder-Mead', tol=1e-6, max_iteration=1000):
     if error_model is None:
         error_model = error_l2norm
 
@@ -35,6 +39,7 @@ def fit_model(x_data, y_data, model, error_model=None, method='Nelder-Mead', tol
 
     initial_array = model.get_initial_array(x_data)
 
-    result = minimize(internal_fit, initial_array, method=method, args=(x_data, y_data), tol=tol)
+    result = minimize(internal_fit, initial_array,
+                      method=method, args=(x_data, y_data), tol=tol, options={"maxiter": max_iteration})
 
     return model.get_param_dict_from_array(result.x), result

@@ -1,6 +1,9 @@
 # 01-basic_linear.py
 #
 # A test program for a basic linear fit
+# David Lister
+# October 2023
+#
 
 import numpy as np
 import PhysicalFitting
@@ -13,11 +16,12 @@ x = x + np.random.normal(0, 0.5, x.shape)
 
 test_model = lambda x, m, b: x * m + b
 y = test_model(x, 3.1415, 2.7) + np.random.normal(0, 1, x.shape)
+y = y
 
 fit_model_def = {"Linear": {PhysicalFitting.common.MODEL: PhysicalFitting.models.generic.s_linear,
                             PhysicalFitting.common.PARAMETERS: {'m': "linear_m",
                                                                 'b': "linear_b"}},
-                 PhysicalFitting.common.FIXED_PARAMETERS: {"linear_b": 2.7},
+                 PhysicalFitting.common.FIXED_PARAMETERS: {"linear_b": 2.7 },
                  PhysicalFitting.common.FIT_PARAMETERS: {"linear_m": 0}}
 
 # fit_model_def = {"Linear": {PhysicalFitting.common.MODEL: PhysicalFitting.models.generic.s_linear,

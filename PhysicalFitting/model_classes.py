@@ -179,7 +179,6 @@ class CompositeModel:
 
             else:
                 out.append(self.parameter_fit_initial_lookup[parameter])
-
         return np.array(out)
 
     def get_parameter_array_order(self):

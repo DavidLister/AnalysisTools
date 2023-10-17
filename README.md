@@ -9,3 +9,9 @@ The main benefits of this package is:
  - Models are defined including their units, the code will throw errors if the units don't add up. While annoying, this is way better than unknowingly using the model wrong.
  - Models can be fit repeatably and the same model can be easily "stamped" onto other datasets, without specific tuning (which can accidentally introduce error)
  - Parameters are always passed by dictionary where possible, minimizing error due to parameter order changes.
+
+## Todo
+ - Finish adding unit support
+ - Support uncertainty on x and y
+ - Add sqeezing term
+ - Fix or remove auto parameter initial guess determination

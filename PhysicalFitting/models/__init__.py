@@ -12,6 +12,7 @@
 #   - fd_name for the domain functions
 #   - fg_name for the initial guess functions
 
-__all__ = ['generic']
+__all__ = ['generic', 'spectra']
 
 import generic
+import spectra
