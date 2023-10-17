@@ -21,7 +21,7 @@ def fm_linear(x, m, b):
     return m*x + b
 
 
-def fd_all(x):
+def fd_all(x, params):
     return np.full(x.shape, True)
 
 

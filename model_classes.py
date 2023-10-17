@@ -20,7 +20,7 @@ class SingleModel:
         :param initial_guess_map: Dict of initial guess generating functions. Format is param:funct(x_values).
         """
         self.model_function = model_function
-        self.range_function = domain_function
+        self.domain_function = domain_function
         self.parameter_map = parameter_map
         self.n_params = len(self.parameter_map)
         if initial_guess_map is None:
@@ -37,7 +37,7 @@ class SingleModel:
         :return: np array of y values that the model generates.
         """
 
-        domain = self.range_function(x_data, parameter_dict)
+        domain = self.domain_function(x_data, parameter_dict)
         if domain_restriction is not None:
             restricted_domain = np.logical_and(x_data > domain_restriction[0], x_data < domain_restriction[1])
             domain = np.logical_and(domain, restricted_domain)
