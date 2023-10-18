@@ -86,6 +86,44 @@ def fm_pair_kittel_model(x, params):
     return p_of_E * drdE * scale
 
 
+def fm_two_level_thermal_probability(delta_energy, params):
+    """
+    Probability of being in a state of a two-level system. Negative values x correspond to the lower energy state and
+    positive values correspond to the higher energy state. The magnitude is the distance the state is from the midpoint.
+    :param x: Delta energy from the midpoint of the two-level system. eV.
+    :param params: T for the temperature in kelvin.
+    :return: Probability of being in that state.
+    """
+    T = np.abs(params['T'])
+    kb = 8.617555e-5  # eV / K
+    beta = 1/(kb * T)
+    Z = 1 + np.exp(2 * beta * delta_energy)
+    return 1/Z
+
+
+def fm_pair_kittel_model_thermal(x, params):
+    """
+    An exciton pair model of inhomogeneous photoluminescence broadening.
+    :param x: Energy, in eV. Depending on the domain, it can be the full, left or right side of the tail. Note that only the left tail is physically interpetable with this model.
+    :param params: A dict containing r_bohr, E_peak, E_bind, nd, T and scale in nm, eV, cm^-3 and K respectively.
+    :return: Expected counts based on the model.
+    """
+    E_peak = params['E_peak']  # Peak center position
+    scale = params['scale']  # Scaling factor
+    scale = np.abs(scale)
+
+    delta_energy_signed = x - E_peak
+    delta_energy = -1 * np.abs(delta_energy_signed)  # the sub-functions all assume energy shift from isolated bound state
+    mask = delta_energy > -1e-6
+    delta_energy[mask] = -1e-6  # avoid zero values, smoothly
+
+    r_from_E = fm_pair_kittel_R_from_E_tb(delta_energy, params)
+    p_of_E = fm_prob_pair_separation(r_from_E, params)
+    drdE = fm_pair_kittel_dRdE_tb(delta_energy, params)
+    thermal_factor = fm_two_level_thermal_probability(delta_energy_signed, params)
+    return p_of_E * drdE * scale * thermal_factor
+
+
 def fd_pair_full_domain(x, params):
     """
     Kittel model domain masking function.
@@ -119,3 +157,15 @@ def fd_all(x, params):
 
 
 s_pair_kittel_model_lower_side = model_classes.SingleModel(fm_pair_kittel_model, fd_pair_lower_side_domain, ('E_bind', "E_peak", "r_bohr", "nd", "scale"))
+s_pair_kittel_model_thermal = model_classes.SingleModel(fm_pair_kittel_model_thermal, fd_pair_full_domain, ('E_bind', "E_peak", "r_bohr", "nd", "T", "scale"))
+
+if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+
+    x = np.linspace(-1, 1, 2000)
+    T_list = [4, 70, 300]
+    for T in T_list:
+        plt.plot(x, fm_two_level_thermal_probability(x, {"T": T}), label=f"T = {T}K")
+
+    plt.legend()
+    plt.show()

@@ -15,3 +15,7 @@ The main benefits of this package is:
  - Support uncertainty on x and y
  - Add sqeezing term
  - Fix or remove auto parameter initial guess determination
+ - Refine peaks automatically (maybe)
+ - GUI for making initial guess
+ - Scaling inputs to make solver happier
+ - Add simulated annealing, or similar
