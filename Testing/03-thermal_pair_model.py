@@ -33,8 +33,8 @@ data_H839 = np.genfromtxt('H839_2.txt',skip_header=4)
 data_H839[:,0] = data_H839[:,0] + 368.89-368.675 # Calibration was off
 H839_energy, H839_intensity = convert_loaded_data(data_H839)
 
-test_energy = H835_energy
-test_intensity = H835_intensity
+test_energy = H839_energy
+test_intensity = H839_intensity
 
 plt.plot(test_energy, test_intensity)
 plt.show()
@@ -62,11 +62,11 @@ fit_model_def = {"Ga_kittel_pair": {PhysicalFitting.common.MODEL: PhysicalFittin
                                                            "In_lorentz_fwhm": 0.00015,  # eV
                                                            "background_m": 0
                                                            },
-                 PhysicalFitting.common.FIT_PARAMETERS: {"Ga_nd": 1e18,
-                                                         "Ga_pair_scale": 3000,
-                                                         "In_lorentz_scale": 60,
-                                                         "background_b": 6000,
-                                                         "temperature": 70
+                 PhysicalFitting.common.FIT_PARAMETERS: {"Ga_nd": (1e18, 1e15, 1e19),
+                                                         "Ga_pair_scale": (3000, 100, 10000),
+                                                         "In_lorentz_scale": (60, 1, 200),
+                                                         "background_b": (5000, 100, 40000),
+                                                         "temperature": (10, 1, 70)
                                                          }}
 
 fit_model = PhysicalFitting.model_classes.CompositeModel(fit_model_def)

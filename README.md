@@ -13,7 +13,7 @@ The main benefits of this package is:
 ## Todo
  - Finish adding unit support
  - Support uncertainty on x and y
- - Add sqeezing term
+ - Add squeezing term
  - Fix or remove auto parameter initial guess determination
  - Refine peaks automatically (maybe)
  - GUI for making initial guess

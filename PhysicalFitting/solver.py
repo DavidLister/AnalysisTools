@@ -38,6 +38,9 @@ def fit_model(x_data, y_data, model, error_model=None, method='Nelder-Mead', tol
         return error_model(y_model, y_reference)
 
     initial_array = model.get_initial_array(x_data)
+    print("Initial Guess:")
+    for i in range(len(initial_array)):
+        print(f"\t{model.parameter_fit_lst[i]}: {initial_array[i]}")
 
     result = minimize(internal_fit, initial_array,
                       method=method, args=(x_data, y_data), tol=tol, options={"maxiter": max_iteration})

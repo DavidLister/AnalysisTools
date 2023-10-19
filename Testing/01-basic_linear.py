@@ -22,7 +22,7 @@ fit_model_def = {"Linear": {PhysicalFitting.common.MODEL: PhysicalFitting.models
                             PhysicalFitting.common.PARAMETERS: {'m': "linear_m",
                                                                 'b': "linear_b"}},
                  PhysicalFitting.common.FIXED_PARAMETERS: {"linear_b": 2.7 },
-                 PhysicalFitting.common.FIT_PARAMETERS: {"linear_m": 0}}
+                 PhysicalFitting.common.FIT_PARAMETERS: {"linear_m": (0, -5, 5)}}
 
 # fit_model_def = {"Linear": {PhysicalFitting.common.MODEL: PhysicalFitting.models.generic.s_linear,
 #                             PhysicalFitting.common.PARAMETERS: {'m': "linear_m",

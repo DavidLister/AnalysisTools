@@ -6,8 +6,35 @@
 #
 import numpy as np
 import common
+from scipy.optimize import root
+import copy
+from functools import partial
+
+
+def logistic_function(x, lower, upper):
+    return (upper - lower) / (1 + np.exp(-x)) + lower
+
+
+def robust_solve(func, target, test_range=5):
+    """Robustly solve a single-valued function f(x)=y. Assumes domain is soft-constrained."""
+    x_test = np.linspace(-test_range, test_range, 100)
+    error = func(x_test) - target
+    error = np.abs(error)
+    x_initial_guess = x_test[list(error).index(np.min(error))]
+    sol = root(lambda x: func(x) - target, np.array(x_initial_guess))
+
+    if common.DEBUG:
+        print("Robust solver: ", func, target, test_range)
+        print(sol)
+        print('\n\n\n')
+
+    if abs(sol.x) < 0.1:
+        return np.array(0.1)  # small numbers near zero can mess up the minimizer
+    return sol.x[0]
+
 
 class ModelDefinitionError(Exception):
+    """"Model Definition Error"""
     """"Model Definition Error"""
 
 class SingleModel:
@@ -62,6 +89,8 @@ class CompositeModel:
         self.parameter_fixed_lookup = {}  # LUT to hold fixed values
         self.parameter_fit_initial_lookup = {}  # LUT to hold initial guess for fit parameters
         self.parameter_fit_lst = []  # List that defines parameter order that is used by minimizer
+        self.optimizer_to_internal_mapping = {}
+        self.internal_to_model_mapping = {}
 
         keys = self.raw_composite_model_dict.keys()
 
@@ -69,8 +98,28 @@ class CompositeModel:
             if key == common.FIT_PARAMETERS:
                 for param in self.raw_composite_model_dict[common.FIT_PARAMETERS].keys():
                     self.parameter_classification_dict[param] = common.FIT_PARAMETERS
-                    self.parameter_fit_initial_lookup[param] = self.raw_composite_model_dict[common.FIT_PARAMETERS][param]
                     self.parameter_fit_lst.append(param)
+                    if isinstance(self.raw_composite_model_dict[common.FIT_PARAMETERS][param], tuple):
+                        constraints = self.raw_composite_model_dict[common.FIT_PARAMETERS][param]
+                        self.parameter_fit_initial_lookup[param] = constraints[0]
+                        match len(constraints):
+                            case 3:
+                                self.optimizer_to_internal_mapping[param] = partial(logistic_function, lower=constraints[1], upper=constraints[2])
+                                self.internal_to_model_mapping[param] = lambda x: x
+
+                            case 4:
+                                self.internal_to_model_mapping[param] = constraints[3]
+                                internal_low = robust_solve(constraints[3], constraints[1], test_range=50)
+                                internal_high = robust_solve(constraints[3], constraints[2], test_range=50)
+                                self.optimizer_to_internal_mapping[param] = partial(logistic_function, lower=internal_low, upper=internal_high)
+
+
+                            case _:
+                                raise ModelDefinitionError(f"Fit parameter initial guess not defined properly for {param}")
+                    else:
+                        self.parameter_fit_initial_lookup[param] = self.raw_composite_model_dict[common.FIT_PARAMETERS][param]
+                        self.optimizer_to_internal_mapping[param] = lambda x: x
+                        self.internal_to_model_mapping[param] = lambda x: x
 
             elif key == common.FIXED_PARAMETERS:
                 for param in self.raw_composite_model_dict[common.FIXED_PARAMETERS].keys():
@@ -148,7 +197,8 @@ class CompositeModel:
     def get_param_dict_from_array(self, parameter_array):
         parameter_dict = {}
         for i in range(len(self.parameter_fit_lst)):
-            parameter_dict[self.parameter_fit_lst[i]] = parameter_array[i]
+            internal = self.optimizer_to_internal_mapping[self.parameter_fit_lst[i]](parameter_array[i])
+            parameter_dict[self.parameter_fit_lst[i]] = self.internal_to_model_mapping[self.parameter_fit_lst[i]](internal)
 
         return {**parameter_dict, **self.parameter_fixed_lookup}
 
@@ -158,7 +208,7 @@ class CompositeModel:
 
     def get_initial_array(self, x_values):
         """
-        Returns a numpy array of initial parameters
+        Returns a numpy array of initial parameters in optimizer-reduced variables
         :param x_values: x_values that it will be fit over. Used for parameters with AUTO parameter flag.
         :return: np array of initial guess values.
         """
@@ -170,7 +220,8 @@ class CompositeModel:
                 models = self.parameter_name_to_model[parameter]
                 for model in models:
                     if parameter in self.model_dict[model].initial_guess_map:
-                        values.append(self.model_dict[model].initial_guess_map[parameter](x_values))
+                        val = robust_solve(self.optimizer_to_internal_mapping[parameter], self.model_dict[model].initial_guess_map[parameter](x_values))
+                        values.append(val)
                 if len(values) > 0:
                     out.append(np.mean(values))
                 else:
@@ -178,7 +229,8 @@ class CompositeModel:
                     out.append(1.0)
 
             else:
-                out.append(self.parameter_fit_initial_lookup[parameter])
+                val = robust_solve(self.optimizer_to_internal_mapping[parameter], self.parameter_fit_initial_lookup[parameter])
+                out.append(val)
         return np.array(out)
 
     def get_parameter_array_order(self):

@@ -16,3 +16,5 @@ MODEL = "MODEL"
 DOMAIN = "DOMAIN"
 
 AUTO = "AUTO"  # For automatically determining initial guess
+
+DEBUG = False

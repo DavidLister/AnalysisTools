@@ -65,12 +65,12 @@ fit_model_def = {"Ga_lorentzian": {PhysicalFitting.common.MODEL: PhysicalFitting
                                                            "In_lorentz_fwhm": 0.00015,  # eV
                                                            "background_m": 0
                                                            },
-                 PhysicalFitting.common.FIT_PARAMETERS: {"Ga_lorentz_fwhm": 0.0005,
-                                                         "Ga_nd": 1e18,
-                                                         "Ga_pair_scale": 3000,
-                                                         "Ga_lorentz_scale": 3900,
-                                                         "In_lorentz_scale": 60,
-                                                         "background_b": 10,
+                 PhysicalFitting.common.FIT_PARAMETERS: {"Ga_lorentz_fwhm": (0.0005, 0.0001, 0.004),
+                                                         "Ga_nd": (1e17, 1e15, 1e20),
+                                                         "Ga_pair_scale": (3000, 1000, 6000),
+                                                         "Ga_lorentz_scale": (3900, 500, 6000),
+                                                         "In_lorentz_scale": (60, 10, 200),
+                                                         "background_b": (5000, 1000, 10000),
                                                          }}
 
 fit_model = PhysicalFitting.model_classes.CompositeModel(fit_model_def)
