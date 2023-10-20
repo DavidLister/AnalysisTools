@@ -66,7 +66,7 @@ fit_model_def = {"Ga_lorentzian": {PhysicalFitting.common.MODEL: PhysicalFitting
                                                            "background_m": 0
                                                            },
                  PhysicalFitting.common.FIT_PARAMETERS: {"Ga_lorentz_fwhm": (0.0005, 0.0001, 0.004),
-                                                         "Ga_nd": (1e17, 1e15, 1e20),
+                                                         "Ga_nd": (1e18, 1e15, 1e20),
                                                          "Ga_pair_scale": (3000, 1000, 6000),
                                                          "Ga_lorentz_scale": (3900, 500, 6000),
                                                          "In_lorentz_scale": (60, 10, 200),
@@ -76,7 +76,8 @@ fit_model_def = {"Ga_lorentzian": {PhysicalFitting.common.MODEL: PhysicalFitting
 fit_model = PhysicalFitting.model_classes.CompositeModel(fit_model_def)
 error_model = PhysicalFitting.solver.error_l2norm
 parameters, fit = PhysicalFitting.solver.fit_model(test_energy, test_intensity, fit_model, error_model,
-                                                   max_iteration=5000, method="Nelder-Mead")
+                                                   max_iteration=5000, method="Nelder-Mead",
+                                                   antialiasing=common.GAUSSIAN_AA10X)
 
 for parameter in parameters:
     print(f"{parameter}: {parameters[parameter]}")
@@ -85,7 +86,7 @@ print(fit)
 
 new_x = np.linspace(min(test_energy), max(test_energy), 10*len(test_energy))
 plt.plot(test_energy, test_intensity, 'x', label="Input")
-y_model = fit_model.run(new_x, parameters)
+y_model = fit_model.run(new_x, parameters, antialiasing=common.GAUSSIAN_AA10X, width=test_energy[1] - test_energy[0])
 plt.plot(new_x, y_model, label="Model")
 plt.legend()
 plt.show()

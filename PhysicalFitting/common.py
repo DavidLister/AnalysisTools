@@ -18,3 +18,5 @@ DOMAIN = "DOMAIN"
 AUTO = "AUTO"  # For automatically determining initial guess
 
 DEBUG = False
+
+GAUSSIAN_AA10X = "GAUSSIAN_AA10X"

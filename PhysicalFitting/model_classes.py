@@ -7,12 +7,17 @@
 import numpy as np
 import common
 from scipy.optimize import root
-import copy
+from scipy.signal import fftconvolve
+from scipy.interpolate import interp1d
 from functools import partial
 
 
 def logistic_function(x, lower, upper):
     return (upper - lower) / (1 + np.exp(-x)) + lower
+
+
+def identity(x):
+    return x
 
 
 def robust_solve(func, target, test_range=5):
@@ -33,9 +38,41 @@ def robust_solve(func, target, test_range=5):
     return sol.x[0]
 
 
+def direct_sampling(model, x, params, width=None):
+    return model(x, params)
+
+
+def normal_distribution(x, mu, sigma):
+    dist = np.exp((-1/2) * ((x - mu)/sigma)**2)
+    return dist * (1/np.sum(dist))
+
+
+def gaussian_AA10X(model, x, params, width=None):
+    """Samples the model with a resolution of 10x the median x spacing and convolves
+       with a gaussian with a sigma equal to the median x spacing."""
+    delta_x = np.median(x[1:] - x[:-1])
+    oversample = 10
+    x_oversample = np.arange(min(x), max(x) + delta_x/(oversample-1), delta_x/oversample)
+    if width is None:
+        width = delta_x/2
+
+    x_kernel = np.arange(-width*5, width*5 + delta_x/(oversample-1), delta_x/oversample)
+    kernel = normal_distribution(x_kernel, 0, width)
+
+    raw_samples = model(x_oversample, params)
+    convolved_samples = fftconvolve(raw_samples, kernel, 'same')
+    interpolator = interp1d(x_oversample, convolved_samples)
+    return interpolator(x)
+
+
+
 class ModelDefinitionError(Exception):
     """"Model Definition Error"""
-    """"Model Definition Error"""
+
+
+class ModelConfigurationError(Exception):
+    """Model Configuration Error"""
+
 
 class SingleModel:
     def __init__(self, model_function, domain_function, parameter_map, initial_guess_map=None):
@@ -105,7 +142,7 @@ class CompositeModel:
                         match len(constraints):
                             case 3:
                                 self.optimizer_to_internal_mapping[param] = partial(logistic_function, lower=constraints[1], upper=constraints[2])
-                                self.internal_to_model_mapping[param] = lambda x: x
+                                self.internal_to_model_mapping[param] = identity
 
                             case 4:
                                 self.internal_to_model_mapping[param] = constraints[3]
@@ -118,8 +155,8 @@ class CompositeModel:
                                 raise ModelDefinitionError(f"Fit parameter initial guess not defined properly for {param}")
                     else:
                         self.parameter_fit_initial_lookup[param] = self.raw_composite_model_dict[common.FIT_PARAMETERS][param]
-                        self.optimizer_to_internal_mapping[param] = lambda x: x
-                        self.internal_to_model_mapping[param] = lambda x: x
+                        self.optimizer_to_internal_mapping[param] = identity
+                        self.internal_to_model_mapping[param] = identity
 
             elif key == common.FIXED_PARAMETERS:
                 for param in self.raw_composite_model_dict[common.FIXED_PARAMETERS].keys():
@@ -180,19 +217,32 @@ class CompositeModel:
             if self.parameter_fit_initial_lookup[param] == common.AUTO:
                 self.auto_initial_guess_flag = True
 
-    def run(self, x_data, parameter_dict):
-        """
-        Run the model given x-data and a dictionary with all the required parameters.
-        :param x_data: np array of the x-data to run the model over.
-        :param parameter_dict: Dictionary containing all the model fit parameters.
-        :return: np array of the y data, in the same shape as x.
-        """
+    def sample(self, x_data, parameter_dict):
         y_data = np.zeros(x_data.shape)
         for model in self.model_dict.keys():
             submodel_parameters = {sub_param: parameter_dict[self.model_dict[model][common.PARAMETERS][sub_param]] for sub_param in self.model_dict[model][common.PARAMETERS].keys()}
             y_data = y_data + self.model_dict[model][common.MODEL].run(x_data, submodel_parameters, domain_restriction=self.model_dict[model][common.DOMAIN])
 
         return y_data
+
+    def run(self, x_data, parameter_dict, antialiasing=False, width=None):
+        """
+        Run the model given x-data and a dictionary with all the required parameters.
+        :param x_data: np array of the x-data to run the model over.
+        :param parameter_dict: Dictionary containing all the model fit parameters.
+        :return: np array of the y data, in the same shape as x.
+        """
+
+        match antialiasing:
+            case False:
+                sampler = direct_sampling
+            case common.GAUSSIAN_AA10X:
+                sampler = gaussian_AA10X
+            case _:
+                raise ModelConfigurationError(f"Improper anti aliasing configuration, set to {antialiasing}")
+
+        return sampler(self.sample, x_data, parameter_dict, width=width)
+
 
     def get_param_dict_from_array(self, parameter_array):
         parameter_dict = {}
@@ -202,9 +252,9 @@ class CompositeModel:
 
         return {**parameter_dict, **self.parameter_fixed_lookup}
 
-    def run_optimizer(self, x_data, parameter_array):
+    def run_optimizer(self, x_data, parameter_array, antialiasing=False):
         parameter_dict = self.get_param_dict_from_array(parameter_array)
-        return self.run(x_data, parameter_dict)
+        return self.run(x_data, parameter_dict, antialiasing=antialiasing)
 
     def get_initial_array(self, x_values):
         """
