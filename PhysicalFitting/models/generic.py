@@ -37,5 +37,6 @@ def fd_all(x, params):
     return np.full(x.shape, True)
 
 
+
 s_linear = model_classes.SingleModel(fm_linear, fd_all, ('m', 'b'))
 s_lorentz = model_classes.SingleModel(fm_lorentz_distribution, fd_all, ('x0', 'fwhm', 'scale'))

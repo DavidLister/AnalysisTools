@@ -54,7 +54,7 @@ def stateless_internal_fit(params, x_vals, y_reference, model, error_model, anti
     y_model = model.run_optimizer(x_vals, params, antialiasing=antialiasing)
     return error_model(y_model, y_reference)
 
-def fit_model_global(x_data, y_data, model, error_model=None, method='Nelder-Mead', tol=1e-6, max_iteration=1000, antialiasing=False):
+def fit_model_global(x_data, y_data, model, error_model=None, method="differential_evolution", antialiasing=False):
     if error_model is None:
         error_model = error_l2norm
 
@@ -67,8 +67,13 @@ def fit_model_global(x_data, y_data, model, error_model=None, method='Nelder-Mea
     low = -10
     high = 10
     bounds = [(low, high) for i in range(len(initial_array))]
-
-    result = differential_evolution(internal, bounds, init='sobol', polish=True, workers=-1, popsize=30)
+    match method:
+        case "differential_evolution":
+            result = differential_evolution(internal, bounds, init='sobol', polish=True, workers=-1, popsize=30, mutation=(0.25,1.5), recombination=0.5)
+        case "dual_annealing":
+            result = differential_evolution(internal, bounds)
+        case "basinhopping":
+            result = basinhopping(internal, initial_array)
     # result = shgo(internal_fit, bounds)
     # result = dual_annealing(internal_fit, bounds)
     # result = direct(internal_fit, bounds)
