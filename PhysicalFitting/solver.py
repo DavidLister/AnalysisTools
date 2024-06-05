@@ -23,6 +23,14 @@ def error_l2norm(data1, data2):
     return out
 
 
+def error_l1norm(data1, data2):
+    delta = data1 - data2
+    if isinstance(delta, common.pint.Quantity):
+        return np.linalg.norm(delta.magnitude, ord=1)
+    out = np.linalg.norm(delta, ord=1)
+    return out
+
+
 def error_l2norm_in_semilogy_space(data1, data2):
     """Experimental"""
     delta = np.log(data1 + 1) - np.log(data2 + 1)

@@ -49,22 +49,22 @@ if __name__ == "__main__":  # Needed for multi-worked global optimization to be 
 
     fit_model_def = {"Ga_urbach_left": {PhysicalFitting.common.MODEL: PhysicalFitting.models.spectra.s_urbach_tail_left,
                                         PhysicalFitting.common.PARAMETERS: {'E_peak': "Ga_E_peak",
-                                                                            'E_u': 'Ga_E_u_left',
+                                                                            'E_u': 'E_u',
                                                                             'E_0': 'Ga_E_peak',
                                                                             'A': 'Ga_urbach_scale_left'}},
                      "Ga_urbach_right": {PhysicalFitting.common.MODEL: PhysicalFitting.models.spectra.s_urbach_tail_right,
                                         PhysicalFitting.common.PARAMETERS: {'E_peak': "Ga_E_peak",
-                                                                            'E_u': 'Ga_E_u_right',
+                                                                            'E_u': 'E_u',
                                                                             'E_0': 'Ga_E_peak',
                                                                             'A': 'Ga_urbach_scale_right'}},
                      "In_urbach_left": {PhysicalFitting.common.MODEL: PhysicalFitting.models.spectra.s_urbach_tail_left,
                                         PhysicalFitting.common.PARAMETERS: {'E_peak': "In_E_peak",
-                                                                            'E_u': 'In_E_u_left',
+                                                                            'E_u': 'E_u',
                                                                             'E_0': 'In_E_peak',
                                                                             'A': 'In_urbach_scale_left'}},
                      "In_urbach_right": {PhysicalFitting.common.MODEL: PhysicalFitting.models.spectra.s_urbach_tail_right,
                                          PhysicalFitting.common.PARAMETERS: {'E_peak': "In_E_peak",
-                                                                             'E_u': 'In_E_u_right',
+                                                                             'E_u': 'E_u',
                                                                              'E_0': 'In_E_peak',
                                                                              'A': 'In_urbach_scale_right'}},
                      "Ga_lorentzian": {PhysicalFitting.common.MODEL: PhysicalFitting.models.generic.s_lorentz,
@@ -82,24 +82,22 @@ if __name__ == "__main__":  # Needed for multi-worked global optimization to be 
                                                                "In_lorentz_fwhm": 0.00015,  # eV
                                                                "background_m": 0,  # counts
                                                                },
-                     PhysicalFitting.common.FIT_PARAMETERS: {"In_lorentz_scale": (110, 1, 200), # (guess, min, max)
+                     PhysicalFitting.common.FIT_PARAMETERS: {"In_lorentz_scale": (10, 1, 200), # (guess, min, max)
                                                              "background_b": (5000, 100, 40000),
                                                              "Ga_lorentz_fwhm": (0.0002, 0.00005, 0.001),
-                                                             "Ga_lorentz_scale": (1000, 100, 10000),
+                                                             "Ga_lorentz_scale": (200, 100, 10000),
                                                              "Ga_E_peak": (3.360, 3.355, 3.365),  # eV
-                                                             "Ga_E_u_left": (0.002, 0.0005, 0.05),  # eV
+                                                             "E_u": (0.002, 0.0005, 0.05),  # eV
                                                              "Ga_urbach_scale_left": (1e5, 1e4, 1e7),
-                                                             "Ga_E_u_right": (-0.001, -0.005, -0.0001),  # eV
                                                              "Ga_urbach_scale_right": (1e4, 2e5, 5e6),
-                                                             "In_E_u_left": (0.002, 0.0001, 0.01),  # eV
                                                              "In_urbach_scale_left": (1e5, 1e3, 1e6),
-                                                             "In_E_u_right": (-0.002, -0.01, -0.0001),  # eV
                                                              "In_urbach_scale_right": (1e5, 1e3, 1e6)
                                                              }}
 
 
     fit_model = PhysicalFitting.model_classes.CompositeModel(fit_model_def)
-    error_model = PhysicalFitting.solver.error_l2norm
+    error_model = PhysicalFitting.solver.error_l1norm
+
     start = time.time()
     parameters, fit = PhysicalFitting.solver.fit_model_global(test_energy, test_intensity, fit_model, error_model,
                                                           method="differential_evolution",
@@ -113,9 +111,21 @@ if __name__ == "__main__":  # Needed for multi-worked global optimization to be 
     print(fit)
 
     new_x = np.linspace(min(test_energy), max(test_energy), 10*len(test_energy))
-    plt.plot(test_energy, test_intensity, 'x', label="Input")
     y_model = fit_model.run(new_x, parameters, antialiasing=common.GAUSSIAN_AA10X, width=test_energy[1] - test_energy[0])
-    plt.plot(new_x, y_model, label="Model")
+    res = test_intensity - fit_model.run(test_energy, parameters)
+    res = res / np.sqrt(test_intensity + 1)
+
+    fig, (ax0, ax1) = plt.subplots(2, 1, gridspec_kw={'height_ratios': [1,3]}, figsize=(5,7))
+    ax1.semilogy(test_energy, test_intensity, 'x', label="Input")
+    ax1.semilogy(new_x, y_model, label="Model")
+    ax0.set_xticks([])
+    fig.subplots_adjust(hspace=0)
+    ax0.plot(test_energy, res, 'r.', fillstyle='none')
+    ax1.set_xlabel("Energy (eV)")
+    ax1.set_ylabel("Intensity (counts)")
+    ax0.set_ylabel("Residuals")
+
     plt.legend()
+    fig.tight_layout()
     plt.title(title)
     plt.show()

@@ -124,7 +124,7 @@ def fm_pair_kittel_model_thermal(x, params):
     return p_of_E * drdE * scale * thermal_factor
 
 
-def fm_urbach_tail(x, params):
+def fm_urbach_tail_left(x, params):
     """
     Urbach tail model, using the form A*exp((E-E_0/E_u) where E_u is the Urbach energy, E_0 is a horizontal shift and
     A is a scaling constant.
@@ -136,6 +136,20 @@ def fm_urbach_tail(x, params):
     E_0 = params['E_0']  # Energy shift
     A = params['A']  # Constant
     return np.exp((x-E_0)/E_u) * A
+
+
+def fm_urbach_tail_right(x, params):
+    """
+    Urbach tail model, using the form A*exp((E-E_0/E_u) where E_u is the Urbach energy, E_0 is a horizontal shift and
+    A is a scaling constant.
+    :param x: Energy in eV
+    :param params: a dict containing E_u, E_0 and C in eV and unitless respectively.
+    :return: Expected counts based on the model.
+    """
+    E_u = params['E_u']  # Urbach energy in eV
+    E_0 = params['E_0']  # Energy shift
+    A = params['A']  # Constant
+    return np.exp((E_0-x)/E_u) * A
 
 def fd_pair_full_domain(x, params):
     """
@@ -180,8 +194,8 @@ def fd_right_of_peak(x, params):
 
 s_pair_kittel_model_lower_side = model_classes.SingleModel(fm_pair_kittel_model, fd_pair_lower_side_domain, ('E_bind', "E_peak", "r_bohr", "nd", "scale"))
 s_pair_kittel_model_thermal = model_classes.SingleModel(fm_pair_kittel_model_thermal, fd_pair_full_domain, ('E_bind', "E_peak", "r_bohr", "nd", "T", "scale"))
-s_urbach_tail_left = model_classes.SingleModel(fm_urbach_tail, fd_left_of_peak, ('E_u', 'E_0', 'A', 'E_peak'))
-s_urbach_tail_right = model_classes.SingleModel(fm_urbach_tail, fd_right_of_peak, ('E_u', 'E_0', 'A', 'E_peak'))
+s_urbach_tail_left = model_classes.SingleModel(fm_urbach_tail_left, fd_left_of_peak, ('E_u', 'E_0', 'A', 'E_peak'))
+s_urbach_tail_right = model_classes.SingleModel(fm_urbach_tail_right, fd_right_of_peak, ('E_u', 'E_0', 'A', 'E_peak'))
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
