@@ -38,15 +38,17 @@ class CustomSlider(QWidget):
         self.resolution_factor = self.resolution_target/(self.max_value - self.min_value)
 
         # Create label
-        self.label = QLabel(self.param_name)
+        self.label = QLabel(self.param_name + '  ')
 
         # Create lower bound QLineEdit
         self.lower_bound_edit = QLineEdit(str(self.min_value))
-        self.lower_bound_edit.setFixedWidth(60)  # set width to keep it consistent
+        self.lower_bound_edit.setFixedWidth(30)  # set width to keep it consistent
+        self.lower_bound_edit.setStyleSheet("QLineEdit { background-color: lightblue; }")
 
         # Create upper bound QLineEdit
         self.upper_bound_edit = QLineEdit(str(self.max_value))
-        self.upper_bound_edit.setFixedWidth(60)  # set width to keep it consistent
+        self.upper_bound_edit.setFixedWidth(30)  # set width to keep it consistent
+        self.upper_bound_edit.setStyleSheet("QLineEdit { background-color: lightblue; }")
 
         # Create QSlider
         self.slider = QSlider(Qt.Horizontal)
@@ -56,12 +58,12 @@ class CustomSlider(QWidget):
 
         # Layouts
         slider_layout = QHBoxLayout()
+        slider_layout.addWidget(self.label)
         slider_layout.addWidget(self.lower_bound_edit)
         slider_layout.addWidget(self.slider)
         slider_layout.addWidget(self.upper_bound_edit)
 
         main_layout = QVBoxLayout()
-        main_layout.addWidget(self.label)
         main_layout.addLayout(slider_layout)
 
         self.setLayout(main_layout)
@@ -79,7 +81,7 @@ class CustomSlider(QWidget):
 
     def on_slider_changed(self, value):
         """Handle slider value change."""
-        self.update_function()
+        self.update_function(self.get_actual_value())
 
     def on_bound_changed(self):
         """Handle changes in the bounds."""
@@ -139,9 +141,15 @@ class MainWindow(QMainWindow):
         # Link them to functions
         # Add widgets to layout
 
+        self.test_slider = CustomSlider("Test", 5, 0, 10, test)
+        self.layout.addWidget(self.test_slider)
+
         self.widget = QWidget()
         self.widget.setLayout(self.layout)
         self.setCentralWidget(self.widget)
+
+def test(val):
+    print(val)
 
 if __name__ == "__main__":
     app = QApplication([])

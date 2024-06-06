@@ -95,7 +95,7 @@ if __name__ == "__main__":  # Needed for multi-worked global optimization to be 
                                                              }}
 
 
-    fit_model = PhysicalFitting.model_classes.CompositeModel(fit_model_def)
+    fit_model = PhysicalFitting.model_classes.CompositeModel(fit_model_def, domain_restriction=(3.355, 3.361))
     error_model = PhysicalFitting.solver.error_l1norm
 
     start = time.time()

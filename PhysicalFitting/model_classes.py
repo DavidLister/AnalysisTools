@@ -113,7 +113,7 @@ class SingleModel:
 
 
 class CompositeModel:
-    def __init__(self, composite_model_dict):
+    def __init__(self, composite_model_dict, domain_restriction=None):
         """
         Builds a composite model class from a composite model dictionary.
         :param composite_model_dict: A composite model dictionary definition. See initial_model in "Planning/use_cases.py" for an example.
@@ -128,6 +128,7 @@ class CompositeModel:
         self.parameter_fit_lst = []  # List that defines parameter order that is used by minimizer
         self.optimizer_to_internal_mapping = {}
         self.internal_to_model_mapping = {}
+        self.domain_restriction = domain_restriction
 
         keys = self.raw_composite_model_dict.keys()
 
@@ -220,8 +221,19 @@ class CompositeModel:
     def sample(self, x_data, parameter_dict):
         y_data = np.zeros(x_data.shape)
         for model in self.model_dict.keys():
+            if self.domain_restriction is not None:
+                if self.model_dict[model][common.DOMAIN] is not None:
+                    domain = (min(self.domain_restriction[0], self.model_dict[model][common.DOMAIN][0]),
+                              max(self.domain_restriction[1], self.model_dict[model][common.DOMAIN][1]))
+                else:
+                    domain = self.domain_restriction
+            else:
+                if self.model_dict[model][common.DOMAIN] is not None:
+                    domain = self.model_dict[model][common.DOMAIN]
+                else:
+                    domain = None
             submodel_parameters = {sub_param: parameter_dict[self.model_dict[model][common.PARAMETERS][sub_param]] for sub_param in self.model_dict[model][common.PARAMETERS].keys()}
-            y_data = y_data + self.model_dict[model][common.MODEL].run(x_data, submodel_parameters, domain_restriction=self.model_dict[model][common.DOMAIN])
+            y_data = y_data + self.model_dict[model][common.MODEL].run(x_data, submodel_parameters, domain_restriction=domain)
 
         return y_data
 
