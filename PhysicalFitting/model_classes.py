@@ -52,7 +52,10 @@ def gaussian_AA10X(model, x, params, width=None):
        with a gaussian with a sigma equal to the median x spacing."""
     delta_x = np.median(x[1:] - x[:-1])
     oversample = 10
-    x_oversample = np.arange(min(x), max(x) + delta_x/(oversample-1), delta_x/oversample)
+    x_oversample = np.arange(np.min(x), np.max(x) + np.abs(delta_x)/(oversample-1), np.abs(delta_x)/oversample)
+    if delta_x < 0:
+        x_oversample = x_oversample[::-1]
+
     if width is None:
         width = delta_x/2
 
@@ -236,6 +239,26 @@ class CompositeModel:
             y_data = y_data + self.model_dict[model][common.MODEL].run(x_data, submodel_parameters, domain_restriction=domain)
 
         return y_data
+
+    def sample_per_model(self, x_data, parameter_dict):
+        y_data = np.zeros(x_data.shape)
+        out = {}
+        for model in self.model_dict.keys():
+            if self.domain_restriction is not None:
+                if self.model_dict[model][common.DOMAIN] is not None:
+                    domain = (min(self.domain_restriction[0], self.model_dict[model][common.DOMAIN][0]),
+                              max(self.domain_restriction[1], self.model_dict[model][common.DOMAIN][1]))
+                else:
+                    domain = self.domain_restriction
+            else:
+                if self.model_dict[model][common.DOMAIN] is not None:
+                    domain = self.model_dict[model][common.DOMAIN]
+                else:
+                    domain = None
+            submodel_parameters = {sub_param: parameter_dict[self.model_dict[model][common.PARAMETERS][sub_param]] for sub_param in self.model_dict[model][common.PARAMETERS].keys()}
+            out[model] = self.model_dict[model][common.MODEL].run(x_data, submodel_parameters, domain_restriction=domain)
+
+        return out
 
     def run(self, x_data, parameter_dict, antialiasing=False, width=None):
         """

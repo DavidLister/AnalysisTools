@@ -57,9 +57,11 @@ def fit_model(x_data, y_data, model, error_model=None, method='Nelder-Mead', tol
 
     return model.get_param_dict_from_array(result.x), result
 
+
 def stateless_internal_fit(params, x_vals, y_reference, model, error_model, antialiasing):
     y_model = model.run_optimizer(x_vals, params, antialiasing=antialiasing)
     return error_model(y_model, y_reference)
+
 
 def fit_model_global(x_data, y_data, model, error_model=None, method="differential_evolution", antialiasing=False):
     if error_model is None:
