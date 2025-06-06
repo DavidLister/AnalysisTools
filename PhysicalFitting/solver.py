@@ -7,8 +7,7 @@
 
 from scipy.optimize import *
 import numpy as np
-import model_classes
-import common
+from . import model_classes, common
 from functools import partial
 import pickle
 

@@ -5,7 +5,7 @@
 # October 2023
 #
 import numpy as np
-import common
+from . import common
 from scipy.optimize import root
 from scipy.signal import fftconvolve
 from scipy.interpolate import interp1d

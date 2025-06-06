@@ -13,7 +13,7 @@
 #   - fg_name for the initial guess functions
 
 import numpy as np
-import model_classes
+from .. import model_classes
 
 
 def fm_linear(x, params):

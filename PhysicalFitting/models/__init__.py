@@ -14,5 +14,5 @@
 
 __all__ = ['generic', 'spectra']
 
-import generic
-import spectra
+from . import generic
+from . import spectra

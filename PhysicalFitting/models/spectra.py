@@ -14,8 +14,7 @@
 
 import numpy as np
 from scipy import special
-import model_classes
-import common
+from .. import model_classes, common
 
 ureg = common.ureg
 

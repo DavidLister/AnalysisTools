@@ -7,9 +7,9 @@
 
 __all__ = ["solver", "model_classes", "common", "models"]
 
-import common
-import solver
-import model_classes
-import models
+from . import common
+from . import model_classes
+from . import solver
+from . import models
 
 ureg = common.ureg
