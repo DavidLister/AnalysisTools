@@ -150,6 +150,32 @@ def fm_urbach_tail_right(x, params):
     A = params['A']  # Constant
     return np.exp((E_0-x)/E_u) * A
 
+def fm_voight_unnormalized(x, params):
+    """
+    Voight function for general spectral fitting. Not normalized for easy setting of scale parameters
+    :param x: x-axis
+    :param params: a dict containing offset x0, the standard deviation stdev and the fwhm
+    :return: Y based on the model
+    """
+    x0 = params['x0']
+    stdev = params['stdev']
+    fwhm = params['fwhm']
+    scale = params['scale']
+    return scale * special.voigt_profile(x - x0, stdev, fwhm) * stdev * np.sqrt(2 * np.pi)
+
+def fm_voight_normalized(x, params):
+    """
+    Normalized Voight function for general spectral fitting.
+    :param x: x-axis
+    :param params: a dict containing offset x0, the standard deviation stdev and the fwhm and the scale
+    :return: Y based on the model
+    """
+    x0 = params['x0']
+    stdev = params['stdev']
+    fwhm = params['fwhm']
+    scale = params['scale']
+    return scale * special.voigt_profile(x - x0, stdev, fwhm)
+
 def fd_pair_full_domain(x, params):
     """
     Kittel model domain masking function.
@@ -178,8 +204,8 @@ def fd_pair_lower_side_domain(x, params):
     return mask
 
 
-# def fd_all(x, params):
-#     return np.full(x.shape, True)
+def fd_all(x, params):
+    return np.full(x.shape, True)
 
 
 def fd_left_of_peak(x, params):
@@ -195,6 +221,8 @@ s_pair_kittel_model_lower_side = model_classes.SingleModel(fm_pair_kittel_model,
 s_pair_kittel_model_thermal = model_classes.SingleModel(fm_pair_kittel_model_thermal, fd_pair_full_domain, ('E_bind', "E_peak", "r_bohr", "nd", "T", "scale"))
 s_urbach_tail_left = model_classes.SingleModel(fm_urbach_tail_left, fd_left_of_peak, ('E_u', 'E_0', 'A', 'E_peak'))
 s_urbach_tail_right = model_classes.SingleModel(fm_urbach_tail_right, fd_right_of_peak, ('E_u', 'E_0', 'A', 'E_peak'))
+s_voight_unnormalized = model_classes.SingleModel(fm_voight_unnormalized, fd_all, ('x0', 'stdev', 'fwhm', 'scale'))
+s_voight_normalized = model_classes.SingleModel(fm_voight_normalized, fd_all, ('x0', 'stdev', 'fwhm', 'scale'))
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt

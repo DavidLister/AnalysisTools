@@ -22,6 +22,20 @@ def error_l2norm(data1, data2):
     return out
 
 
+def error_l2norm_sqrt_weighted(data1, data2):
+    delta = data1 - data2
+    avg = (data1 + data2)/2
+    weight = np.sqrt(np.abs(avg))
+    if isinstance(delta, common.pint.Quantity):
+        weighted_distances = delta.magnitude**2 * weight.magnitude
+        out = np.sqrt(np.sum(weighted_distances))
+        return out
+
+    weighted_distances = delta**2 * weight
+    out = np.sqrt(np.sum(weighted_distances))
+    return out
+
+
 def error_l1norm(data1, data2):
     delta = data1 - data2
     if isinstance(delta, common.pint.Quantity):
